@@ -1,0 +1,49 @@
+
+# FILENAME: .github/workflows/ci.yml
+name: CI Pipeline
+on: [push, pull_request]
+
+jobs:
+  build-test-lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    # ENVIRONMENT SETUP
+    - name: Setup Java
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    # DEPENDENCY CACHING
+    - name: Cache Gradle dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
+
+    # LINTING STAGE - Checkstyle configuration and execution (auto-configured)
+    - name: Configure Checkstyle
+      run: |
+        mkdir -p config/checkstyle
+        curl -sL https://raw.githubusercontent.com/checkstyle/checkstyle/master/src/main/resources/google_checks.xml > config/checkstyle/checkstyle.xml
+
+    - name: Run Linter (Checkstyle)
+      run: ./gradlew checkstyleMain
+      # QUALITY GATE: Fails on style violations
+
+    # BUILD STAGE - Multi-module support for Gradle build
+    - name: Build project
+      run: ./gradlew clean build
+      # QUALITY GATE: Fails on compilation errors
+
+    # TEST STAGE - Execute tests and generate reports.
+    - name: Run tests
+      run: ./gradlew test
+      # QUALITY GATE: Fails on test failures
+

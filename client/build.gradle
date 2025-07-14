@@ -1,0 +1,39 @@
+plugins {
+    id 'application'
+    id 'java'
+    id 'org.openjfx.javafxplugin' version '0.0.13'
+    id 'java-library'
+    id 'checkstyle'
+}
+
+group 'com.example.transport'
+version '1.0.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation project(':common')
+    implementation 'io.grpc:grpc-netty-shaded:1.56.0'
+    implementation 'io.grpc:grpc-stub:1.56.0'
+    implementation 'com.google.protobuf:protobuf-java:3.24.4'
+}
+
+javafx {
+    version = '21'
+    modules = [ 'javafx.controls', 'javafx.fxml' ]
+}
+
+application {
+    mainClass = 'com.example.transport.client.TransportClientApplication'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release.set(17)
+}
+
+tasks.named('test') {
+    enabled=false
+}

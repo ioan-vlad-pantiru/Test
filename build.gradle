@@ -1,0 +1,39 @@
+plugins {
+    id 'checkstyle' // Root-level plugin is okay
+}
+
+allprojects {
+    group = 'com.example.transport'
+    version = '1.0.0-SNAPSHOT'
+
+    repositories {
+        mavenCentral()
+    }
+}
+
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'checkstyle'
+
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = 'UTF-8'
+        options.release.set(17)
+    }
+
+    afterEvaluate {
+        checkstyle {
+            toolVersion = '8.45.1'  // Known stable version
+            configFile = rootProject.file("config/checkstyle/checkstyle.xml")
+        }
+
+        tasks.withType(Checkstyle).configureEach {
+            reports {
+                html.required.set(true)
+                xml.required.set(false)
+            }
+            exclude '**/generated/**'
+            exclude '**/proto/**'
+            exclude '**/TransportServiceGrpc.java'
+        }
+    }
+}

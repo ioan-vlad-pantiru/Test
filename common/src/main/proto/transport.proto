@@ -1,0 +1,67 @@
+syntax = "proto3";
+option csharp_namespace = "TransportProto";
+option java_multiple_files = true;
+option java_package = "com.example.transport.common.proto";
+option java_outer_classname = "TransportServiceProto";
+
+package transport;
+
+// User login messages
+message LoginRequest {
+  string username = 1;
+  string password = 2;
+}
+message LoginResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// Ride search request
+message SearchRequest {
+  string destination = 1;
+  string date = 2;
+}
+
+// Rides list response
+message ListRidesResponse {
+  repeated Ride rides = 1;
+}
+
+// Seat reservation request
+message ReserveRequest {
+  int64 rideId = 1;
+  string customerName = 2;
+  int32 seatCount = 3;
+}
+message ReserveResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// Real-time update message for seat availability
+message RideUpdate {
+  Ride ride = 1;
+}
+
+// Data models
+message Ride {
+  int64 id = 1;
+  string destination = 2;
+  string datetime = 3;        // date-time of the ride (e.g., "2025-04-15T09:30")
+  int32 availableSeats = 4;
+  repeated Seat seats = 5;
+}
+message Seat {
+  int32 number = 1;
+  string customerName = 2;
+}
+
+import "google/protobuf/empty.proto";
+
+service TransportService {
+  rpc Login(LoginRequest) returns (LoginResponse);
+  rpc ListRides(google.protobuf.Empty) returns (ListRidesResponse);
+  rpc SearchRides(SearchRequest) returns (ListRidesResponse);
+  rpc ReserveSeat(ReserveRequest) returns (ReserveResponse);
+  rpc SubscribeRideUpdates(google.protobuf.Empty) returns (stream RideUpdate);
+}
