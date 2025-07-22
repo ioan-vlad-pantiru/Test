@@ -1,88 +1,51 @@
-Based on the provided project information and requirements, here is a CI configuration in YAML format using GitHub Actions. This configuration supports the specified requirements for building, linting, and testing a Java-based Spring Boot microservices application:
-
-
-# FILENAME: .github/workflows/ci.yml
 name: CI Pipeline
-
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+on: [push, pull_request]
 
 jobs:
   build-test-lint:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      SPRING_PROFILES_ACTIVE: "ci"
 
     steps:
-    # Checkout the source code
     - name: Checkout code
       uses: actions/checkout@v4
 
-    # Setup Java environment
+    # ENVIRONMENT SETUP
     - name: Setup Java
       uses: actions/setup-java@v3
       with:
         java-version: '17'
         distribution: 'temurin'
 
-    # Cache Gradle dependencies
+    # DEPENDENCY CACHING
     - name: Cache Gradle dependencies
       uses: actions/cache@v3
       with:
         path: |
           ~/.gradle/caches
           ~/.gradle/wrapper
-        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
 
-    # Configure Checkstyle (if not already configured)
-    - name: Configure Checkstyle
-      run: |
-        mkdir -p config/checkstyle
-        curl -sL https://raw.githubusercontent.com/checkstyle/checkstyle/master/src/main/resources/google_checks.xml > config/checkstyle/checkstyle.xml
-      if: !exists(config/checkstyle/checkstyle.xml)
-
-    # Linting stage
-    - name: Run Linter
+    # LINTING STAGE
+    - name: Run Checkstyle
       run: ./gradlew checkstyleMain
-      # Quality gate: The pipeline will fail if there are style violations
+      continue-on-error: false
 
-    # Build stage
+    # BUILD STAGE
     - name: Build project
-      run: ./gradlew :server:bootJar --no-daemon
-      # Quality gate: The pipeline will fail if there are build errors
+      run: ./gradlew build -x test
+      continue-on-error: false
 
-    # Test stage
+    # TEST STAGE
     - name: Run tests
       run: ./gradlew test
-      # Quality gate: The pipeline will fail if there are test failures
+      continue-on-error: false
 
-    # Docker build (optional, run only if needed)
-    - name: Build Docker Image
-      run: docker build -t my-service:latest .
-      env:
-        SPRING_PROFILES_ACTIVE: "dev"
-        DATABASE_URL: "jdbc:postgresql://localhost:5432/mydb"
-        GRPC_PORT: "9090"
-
-    # Upload artifacts (if needed)
-    - name: Upload JAR and Docker Image
-      if: success()
+    # BUILD DOCKER IMAGE
+    - name: Build Docker image
       run: |
-        docker save my-service:latest | gzip > my-service-latest.tar.gz
-        echo "Artifacts prepared for deployment"
-
-
-### Key Points:
-- **Java Version**: Java 17 is set up using `actions/setup-java`.
-- **Gradle Caching**: Utilizes `actions/cache` to cache Gradle dependencies to speed up subsequent builds.
-- **Linting**: Uses Checkstyle for Java code linting. A check for `checkstyle.xml` configuration is included to auto-configure if missing.
-- **Building and Testing**: Gradle is used to build and test the project with commands derived from project metadata.
-- **Docker**: Provides an optional stage to build a Docker image if necessary. Environment variables can be set as required by the application.
-- **Timeout and Quality Gates**: The workflow includes timeout protection and quality gates to fail the pipeline on lint, build, or test failures.
-- **YAML Comments**: Comments are added to provide a clear picture of what each section is doing in the workflow.
-
-Ensure that any Docker-related operations (like connecting to a Docker registry) have the necessary credentials and permissions configured as secrets in your GitHub repository.
+        docker build -t myapp:latest .
+      continue-on-error: false
