@@ -10,11 +10,11 @@ jobs:
       uses: actions/checkout@v4
 
     # ENVIRONMENT SETUP
-    - name: Setup Java
+    - name: Set up JDK 17
       uses: actions/setup-java@v3
       with:
-        java-version: '17'
         distribution: 'temurin'
+        java-version: '17'
 
     # DEPENDENCY CACHING
     - name: Cache Gradle dependencies
@@ -28,16 +28,17 @@ jobs:
     # LINTING STAGE
     - name: Run Checkstyle
       run: ./gradlew checkstyleMain
-      continue-on-error: false
+      # QUALITY GATE: Fails on style violations
 
     # BUILD STAGE
     - name: Build project
-      run: ./gradlew clean build
+      run: ./gradlew :server:bootJar
+      # QUALITY GATE: Fails on compilation errors
 
     # TEST STAGE
     - name: Run tests
       run: ./gradlew test
+      # QUALITY GATE: Fails on test failures
 
-    # PACKAGE STAGE
     - name: Build Docker image
-      run: docker build -t myapp:latest .
+      run: docker build -t myapp .
