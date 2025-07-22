@@ -5,10 +5,6 @@ jobs:
   build-test-lint:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      SPRING_PROFILES_ACTIVE: "ci"
-
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -36,16 +32,12 @@ jobs:
 
     # BUILD STAGE
     - name: Build project
-      run: ./gradlew build -x test
-      continue-on-error: false
+      run: ./gradlew clean build
 
     # TEST STAGE
     - name: Run tests
       run: ./gradlew test
-      continue-on-error: false
 
-    # BUILD DOCKER IMAGE
+    # PACKAGE STAGE
     - name: Build Docker image
-      run: |
-        docker build -t myapp:latest .
-      continue-on-error: false
+      run: docker build -t myapp:latest .
