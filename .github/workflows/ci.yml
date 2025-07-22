@@ -24,12 +24,12 @@ jobs:
           ~/.gradle/caches
           ~/.gradle/wrapper
         key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
-
+        
     # LINTING STAGE
     - name: Run Checkstyle
       run: ./gradlew checkstyleMain
       continue-on-error: false
-
+    
     # BUILD STAGE
     - name: Build project
       run: ./gradlew clean build
@@ -38,9 +38,4 @@ jobs:
     # TEST STAGE
     - name: Run tests
       run: ./gradlew test
-      continue-on-error: false
-
-    # RUN SPECIFIC BUILD FOR SERVER JAR
-    - name: BootJar
-      run: ./gradlew :server:bootJar
       continue-on-error: false
