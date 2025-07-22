@@ -1,6 +1,7 @@
 # ----------- Stage 1: Build entire project from root -----------
 FROM gradle:8.5-jdk17 AS build
 
+# Salut 
 WORKDIR /app
 
 # Copy everything (including common + settings.gradle)
