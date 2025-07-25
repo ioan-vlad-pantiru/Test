@@ -9,12 +9,14 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    # ENVIRONMENT SETUP
     - name: Setup Java
       uses: actions/setup-java@v3
       with:
         java-version: '17'
         distribution: 'temurin'
 
+    # DEPENDENCY CACHING
     - name: Cache Gradle dependencies
       uses: actions/cache@v3
       with:
@@ -23,14 +25,32 @@ jobs:
           ~/.gradle/wrapper
         key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
 
+    # LINTING STAGE
     - name: Run Linter
       run: ./gradlew checkstyleMain
+      # QUALITY GATE: Fails on style violations
 
+    # BUILD STAGE
     - name: Build project
       run: ./gradlew clean build
+      # QUALITY GATE: Fails on compilation errors
 
+    # TEST STAGE
     - name: Run tests
       run: ./gradlew test
+      # QUALITY GATE: Fails on test failures
 
+    # DOCKER BUILD STAGE
     - name: Build Docker image
-      run: docker build -t transport-app .
+      run: docker build -t transport-server .
+      # Build Docker image for deployment
+
+    # DEPLOYMENT STAGE (optional, uncomment if needed)
+    # - name: Deploy to Docker
+    #   run: docker-compose up -d
+    #   env:
+    #     SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/transport
+    #     SPRING_DATASOURCE_USERNAME: transport_user
+    #     SPRING_DATASOURCE_PASSWORD: transport_pass
+    #     SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    #   # Deploy the application using Docker Compose
