@@ -22,11 +22,6 @@ jobs:
           ~/.gradle/caches
           ~/.gradle/wrapper
         key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
-        
-    - name: Configure Checkstyle
-      run: |
-        mkdir -p config/checkstyle
-        echo "<module name=\"Checker\" />" > config/checkstyle/checkstyle.xml
 
     - name: Run Linter
       run: ./gradlew checkstyleMain
@@ -36,3 +31,6 @@ jobs:
 
     - name: Run tests
       run: ./gradlew test
+
+    - name: Build Docker image
+      run: docker build -t transport-app .
