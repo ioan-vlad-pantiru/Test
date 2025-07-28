@@ -23,14 +23,26 @@ jobs:
             ~/.gradle/wrapper
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
 
-      - name: Run Checkstyle
+      - name: Configure Checkstyle
+        run: |
+          mkdir -p config/checkstyle
+          curl -sL https://raw.githubusercontent.com/checkstyle/checkstyle/master/src/main/resources/google_checks.xml > config/checkstyle/checkstyle.xml
+
+      - name: Run Linter
         run: ./gradlew checkstyleMain
-        # QUALITY GATE: Fails on style violations
 
       - name: Build project
         run: ./gradlew clean build
-        # QUALITY GATE: Fails on compilation errors
 
       - name: Run tests
         run: ./gradlew test
-        # QUALITY GATE: Fails on test failures
+
+      - name: Build Docker image
+        run: |
+          docker build -t transport-app .
+          docker tag transport-app:latest your-docker-repo/transport-app:latest
+
+      - name: Push Docker image
+        run: |
+          echo "${{ secrets.AZURE_SECRET_KEY }}" | docker login your-docker-repo -u your-username --password-stdin
+          docker push your-docker-repo/transport-app:latest
