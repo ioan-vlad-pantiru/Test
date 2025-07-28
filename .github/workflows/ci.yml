@@ -23,15 +23,25 @@ jobs:
             ~/.gradle/wrapper
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
 
+      - name: Run Linter
+        run: ./gradlew checkstyleMain
+        # QUALITY GATE: Fails on style violations
+
       - name: Build project
         run: ./gradlew clean build
+        # QUALITY GATE: Fails on compilation errors
+
+      - name: Run tests
+        run: ./gradlew test
+        # QUALITY GATE: Fails on test failures
 
       - name: Build Docker image
         run: |
-          docker build -t transport-app .
-          docker tag transport-app:latest your-docker-repo/transport-app:latest
+          docker build -t transport-server .
+          # Build Docker image for deployment
 
       - name: Push Docker image
         run: |
-          echo "${{ secrets.AZURE_SECRET_KEY }}" | docker login your-docker-repo -u your-username --password-stdin
-          docker push your-docker-repo/transport-app:latest
+          echo "${{ secrets.AZURE_SECRET_KEY }}" | docker login <your-docker-registry> --username <your-username> --password-stdin
+          docker push <your-docker-registry>/transport-server
+          # Push Docker image to registry for deployment
