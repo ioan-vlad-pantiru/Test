@@ -6,60 +6,50 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    # ENVIRONMENT SETUP
-    - name: Setup JDK
-      uses: actions/setup-java@v3
-      with:
-        java-version: '17'
-        distribution: 'temurin'
+      # ENVIRONMENT SETUP
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
+      # DEPENDENCY CACHING
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
 
-    # DEPENDENCY CACHING
-    - name: Cache Gradle dependencies
-      uses: actions/cache@v3
-      with:
-        path: |
-          ~/.gradle/caches
-          ~/.gradle/wrapper
-        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
+      # LINTING STAGE
+      - name: Run Checkstyle
+        run: ./gradlew checkstyle
+        # QUALITY GATE: Fails on style violations
 
-    - name: Cache Python dependencies
-      uses: actions/cache@v3
-      with:
-        path: |
-          ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+      # BUILD STAGE
+      - name: Build project
+        run: ./gradlew clean build
+        # QUALITY GATE: Fails on compilation errors
 
-    # LINTING STAGE
-    - name: Run Checkstyle
-      run: ./gradlew checkstyleMain
-      # QUALITY GATE: Fails on style violations
+      # TEST STAGE
+      - name: Run tests
+        run: ./gradlew test
+        # QUALITY GATE: Fails on test failures
 
-    # BUILD STAGE
-    - name: Build Java project
-      run: ./gradlew clean build
-      # QUALITY GATE: Fails on compilation errors
-
-    # TEST STAGE
-    - name: Run Java tests
-      run: ./gradlew test
-      # QUALITY GATE: Fails on test failures
-
-    - name: Run Python tests
-      run: pytest
-      # QUALITY GATE: Fails on test failures
-
-    # BUILD DOCKER IMAGE
-    - name: Build Docker image
-      run: docker build -t your-image-name .
-      # Deploy Docker image after successful build and tests
-      env:
-        DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        FASTAPI_SECRET_KEY: ${{ secrets.FASTAPI_SECRET_KEY }}
+      # ADDITIONAL STEPS BASED ON SECRETS
+      - name: Deploy to Cloud Provider
+        if: secrets.AZURE_SECRET_KEY != ''
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'my-app'
+          slot-name: 'production'
+          publish-profile: ${{ secrets.AZURE_SECRET_KEY }}
+          package: '.'
+        env:
+          NODE_ENV: 'production'
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          REDIS_URL: ${{ secrets.REDIS_URL }}
