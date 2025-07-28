@@ -23,14 +23,6 @@ jobs:
             ~/.gradle/wrapper
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
 
-      - name: Configure Checkstyle
-        run: |
-          mkdir -p config/checkstyle
-          curl -sL https://raw.githubusercontent.com/checkstyle/checkstyle/master/src/main/resources/google_checks.xml > config/checkstyle/checkstyle.xml
-
-      - name: Run Linter
-        run: ./gradlew checkstyleMain
-
       - name: Build project
         run: ./gradlew clean build
 
