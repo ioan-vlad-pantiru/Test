@@ -13,8 +13,8 @@ public class RideDto {
 
     public RideDto() {}
 
-    public RideDto(Long id, String destination, LocalDateTime departureTime) {
-        this.id = id;
+    public RideDto(Long idx, String destination, LocalDateTime departureTime) {
+        this.idx = idx;
         this.destination = destination;
         this.departureTime = departureTime;
     }
