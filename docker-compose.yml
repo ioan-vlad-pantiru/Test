@@ -12,7 +12,7 @@ services:
       SPRING_DATASOURCE_USERNAME: transport_user
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
     labels:
-    - com.yourdomain.project.id=6894861ab4501270dc3e2bb9
+    - com.yourdomain.project.id=68948a8f220d8a108615f9fe
     ports:
     - '8080'
     - '9090'
@@ -25,7 +25,7 @@ services:
       POSTGRES_USER: transport_user
     image: postgres:15
     labels:
-    - com.yourdomain.project.id=6894861ab4501270dc3e2bb9
+    - com.yourdomain.project.id=68948a8f220d8a108615f9fe
     ports:
     - '5432'
     volumes:
