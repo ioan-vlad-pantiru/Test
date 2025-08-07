@@ -8,13 +8,13 @@ public class RideDto {
     private Long id;
     private String destination;
 
-    @JsonFormat(pattern = "MM-yyyy-dd'T'HH:mm:ss")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime departureTime;
 
     public RideDto() {}
 
-    public RideDto(Long idx, String destination, LocalDateTime departureTime) {
-        this.idx = idx;
+    public RideDto(Long id, String destination, LocalDateTime departureTime) {
+        this.id = id;
         this.destination = destination;
         this.departureTime = departureTime;
     }
