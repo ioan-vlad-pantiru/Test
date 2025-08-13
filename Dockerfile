@@ -4,6 +4,16 @@ FROM gradle:8.5-jdk17 AS build
 # Set working directory
 WORKDIR /app
 
+# Copy only the necessary files for dependency resolution
+COPY build.gradle settings.gradle ./
+COPY server/build.gradle server/build.gradle
+COPY client/build.gradle client/build.gradle
+COPY common/build.gradle common/build.gradle
+COPY config/checkstyle/checkstyle.xml config/checkstyle/checkstyle.xml
+
+# Download dependencies
+RUN ./gradlew build --no-daemon
+
 # Copy all project files
 COPY . .
 
